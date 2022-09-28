@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  namespace: redis
+spec:
+  serviceName: redis-cluster
+  replicas: 6
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+#      annotations:
+#        pod.alpha.kubernetes.io/initialized: "false"
+    spec:
+      schedulerName: redisScheduler
+#      affinity:
+#        nodeAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            nodeSelectorTerms:
+#            - matchExpressions:
+#              - key: redism
+#                operator: In
+#                values:
+#                  - statefulset.kubernetes.io/pod-name
+#            - matchExpressions:
+#              - key: rediss
+#                operator: In
+#                values:
+#                  - statefulset.kubernetes.io/pod-name
+                 
+      initContainers:
+      - name: config
+        image: redis:6.0.16
+#        image: bitnami/redis-cluster:6.0.16
+#        command: ['/tmp/redis/nodes-selection.sh']
+        command: [ "sh", "-c" ]
+        args: ["cp -a \"/data/files/.\" \"/etc/redis/\""]
+        #args: ["cp /tmp/redis/redis.conf /etc/redis/redis.conf;cp /etc/redis/redis.conf /data/test.conf;/tmp/redis/update-node.sh"]
+        #args: ["cp -v /data/files/redis.conf /etc/redis/redis.conf 2>>&1 | tee /data/log;cp -v /data/files/update-node.sh /etc/redis/update-nodeb.sh 2>>&1 | tee /data/log;ls /data/files 2>>&1 | tee /data/log"]
+        #command: ['sh', '-c', 'echo The app is running! && sleep 4']       
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis/
+        - name: config
+          mountPath: /data/files/   
+      containers:
+      - name: redis
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        command: [ "sh", "-c" ]
+        args: ["/etc/redis/update-node.sh;redis-server /etc/redis/redis.conf"]
+        #args: ["sleep 3600"]
+#        command: [ "sh", "-c" ]
+#        args: ["cp /etc/redis/redis.conf /data/test.conf"]
+#        env:
+#        - name: POD_IP
+#          valueFrom:
+#            fieldRef:
+#              fieldPath: status.podIP
+#        volumeMounts:
+#        - name: conf
+#          mountPath: /conf
+#          readOnly: false
+#        - name: pv-data-redis
+#          mountPath: /data
+#          readOnly: false
+        volumeMounts:
+        - name: pv-data-redis
+          mountPath: /data
+          readOnly: false
+        - name: redis-config
+          mountPath: /etc/redis/          
+      volumes:
+      - name: redis-config
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: redis-config
+          defaultMode: 0744
+  volumeClaimTemplates:
+  - metadata:
+      name: pv-data-redis
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-storage"
+      resources:
+        requests:
+          storage: 500Mi

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tyk-gateway
+  labels:
+    app: tyk-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tyk-gateway
+  template:
+    metadata:
+      labels:
+        app: tyk-gateway
+    spec:
+      containers:
+        - name: tyk-gateway
+          image: "tykio/tyk-gateway:v4.2"
+          imagePullPolicy: Always
+#          command: ["./opt/tyk-gateway/tyk", "--conf=/opt/tyk-gateway/tyk.conf"]
+          workingDir: /opt/tyk
+          ports:
+            - containerPort: 8081
+          env:
+#            - name: TYK_GW_LISTENPORT
+#              value: "8080"
+#            - name: TYK_GW_SECRET
+#              value: "foo"
+#            - name: TYK_GW_STORAGE_HOST
+#              value: "redis"
+#            - name: TYK_GW_STORAGE_PORT
+#              value: "6379"
+#            - name: TYK_GW_STORAGE_PASSWORD
+#              value: ""
+            - name: TYK_LOGLEVEL
+              value: "debug"
+#            - name: GODEBUG
+#              value: "netdns=cgo"
+            - name: REDIGOCLUSTER_SHARDCOUNT
+              value: "256"
+#            - name: TYK_GW_STORAGE_ENABLECLUSTER
+#              value: "true"
+#            - name: TYK_GW_STORAGE_ADDRS
+#              value: "redis-cluster-0.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-1.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-2.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-3.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-4.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-5.redis-cluster.redis.svc.cluster.local:6379"
+#            - name: TYK_GW_STORAGE_HOSTS
+#              value: "redis-cluster-0.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-1.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-2.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-3.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-4.redis-cluster.redis.svc.cluster.local:6379,redis-cluster-5.redis-cluster.redis.svc.cluster.local:6379"
+#            - name: TYK_GW_STORAGE_MAXIDLE
+#              value: "6000"
+#            - name: TYK_GW_STORAGE_MAXACTIVE
+#              value: "10000"             
+          volumeMounts:
+            - name: tyk-gateway-conf
+              mountPath: /opt/tyk/tyk.conf
+              subPath: tyk.conf
+            - name: tyk-gateway-apps
+              mountPath: /apps
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+      volumes:
+        - name: tyk-gateway-conf
+          configMap:
+            name: tyk-gateway-conf
+            items:
+              - key: tyk.conf
+                path: tyk.conf
+        - name: tyk-gateway-apps
+          persistentVolumeClaim:
+            claimName: gateway-pvc

@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-0
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_0"
+  claimRef:
+    name: pv-data-redis-redis-cluster-0
+    namespace: redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-1
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_1"
+  claimRef:
+    name: pv-data-redis-redis-cluster-1
+    namespace: redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-2
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_2"
+  claimRef:
+    name: pv-data-redis-redis-cluster-2
+    namespace: redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-3
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_3"
+  claimRef:
+    name: pv-data-redis-redis-cluster-3
+    namespace: redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-4
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_4"
+  claimRef:
+    name: pv-data-redis-redis-cluster-4
+    namespace: redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cluster-pv-5
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/redis_data_5"
+  claimRef:
+    name: pv-data-redis-redis-cluster-5
+    namespace: redis

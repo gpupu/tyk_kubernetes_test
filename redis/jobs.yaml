@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-creator
+  namespace: redis
+spec:
+  template:
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh","-c"]
+        args: ["apk update && apk add redis bind-tools ; \
+                redis-cli -h `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local` -p 6379 PING;
+                redis-cli --cluster create \
+                  `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local`:6379 \
+                  `dig +short redis-cluster-1.redis-cluster.redis.svc.cluster.local`:6379 \
+                  `dig +short redis-cluster-2.redis-cluster.redis.svc.cluster.local`:6379 --cluster-yes; \
+                redis-cli -h `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local` -p 6379 --cluster add-node \
+                  `dig +short redis-cluster-3.redis-cluster.redis.svc.cluster.local`:6379 \
+                  `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local`:6379 --cluster-slave; \
+                redis-cli -h `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local` -p 6379 --cluster add-node \
+                  `dig +short redis-cluster-4.redis-cluster.redis.svc.cluster.local`:6379 \
+                  `dig +short redis-cluster-1.redis-cluster.redis.svc.cluster.local`:6379 --cluster-slave; \
+                redis-cli -h `dig +short redis-cluster-0.redis-cluster.redis.svc.cluster.local` -p 6379 --cluster add-node \
+                  `dig +short redis-cluster-5.redis-cluster.redis.svc.cluster.local`:6379 \
+                  `dig +short redis-cluster-2.redis-cluster.redis.svc.cluster.local`:6379 --cluster-slave; \
+                sleep 36000"]
+      restartPolicy: Never
+  backoffLimit: 4
